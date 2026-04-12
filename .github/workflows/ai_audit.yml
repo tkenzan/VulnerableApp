@@ -1,4 +1,4 @@
-name: AI Security Audit (Eye, Kann, Sun)
+name: AI Security Audit (Trinity-SMT)
 on: [push]
 
 jobs:
@@ -8,32 +8,52 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Team AI Security Briefing
+      - name: Team AI Strategic Audit
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
+          # 対象コードの抽出（server.js）
           CODE=$(cat server.js 2>/dev/null || echo "No code found")
           
-          # 1. アイの数理監査
+          # 1. 監査官アイ：数理的・物理的モデル構築
+          EYE_PROMPT="監査官アイ。対象コードを数理・物理モデルで監査せよ。
+          1. 変数の多項式化と伝播ルートのモデル化。
+          2. ネーターの定理に基づき、関数前後で維持されるべき『権限・不変量』の保存則を検証。
+          3. エントロピー勾配から情報漏洩の可能性を特定せよ。
+          対象コード：\n$CODE"
+          
           EYE_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H 'Content-Type: application/json' \
-            -d "{\"contents\": [{\"parts\":[{\"text\": \"監査官アイ。以下を数理監査し、攻撃成立条件を検証せよ。：\n$CODE\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"$EYE_PROMPT\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
           
-          echo -e "\n=== 🛡️ 監査官アイの報告 ==="
+          echo -e "\n=== 🛡️ 監査官アイ：数理・物理監査報告 ==="
           echo "$EYE_RES"
 
-          # 2. カンの反論
+          # 2. 検証官カン：量子的な例外・反論検証
+          KANN_PROMPT="検証官カン。アイの報告を疑え。
+          1. アイが無視した『非自明な境界条件』を突け。
+          2. 全実行パスを量子的な重ね合わせ状態として扱い、アイが観測しきれなかった脆弱な状態を探せ。
+          3. 外部ライブラリとの境界で保存則が破れるシナリオを提示せよ。
+          アイの報告：\n$EYE_RES"
+
           KANN_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H 'Content-Type: application/json' \
-            -d "{\"contents\": [{\"parts\":[{\"text\": \"検証官カン。アイの報告に対し、境界値や型、非自明な経路から徹底的に反論せよ。：\n$EYE_RES\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"$KANN_PROMPT\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
 
-          echo -e "\n=== ⚔️ 検証官カンの反論 ==="
+          echo -e "\n=== ⚔️ 検証官カン：量子的反論検証 ==="
           echo "$KANN_RES"
 
-          # 3. サンの裁定と解決案
+          # 3. 解決官サン：SMTソルバによるPoC生成と裁定
+          SUN_PROMPT="解決官サン。お前はSMTソルバ(充足可能性モジュロ理論)の論理エンジンだ。
+          1. アイとカンの議論から制約集合 C = {入力ガード} ∩ {脆弱性到達条件} を構築せよ。
+          2. 制約 C が充足可能(SAT)か判定せよ。
+          3. SATの場合、具体的な攻撃入力(PoC)を提示せよ。UNSATの場合は『論理的に安全』と証明せよ。
+          4. 冬牙(開発者)への最終的な修正パッチ案を提示せよ。
+          議論内容：\nアイ：$EYE_RES\nカン：$KANN_RES"
+
           SUN_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H 'Content-Type: application/json' \
-            -d "{\"contents\": [{\"parts\":[{\"text\": \"開発補助サン。アイとカンの議論を踏まえ、冬牙(開発者)が今すぐ適用すべき具体的なコード修正案を提示せよ。：\nアイ：$EYE_RES\nカン：$KANN_RES\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"$SUN_PROMPT\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
 
-          echo -e "\n=== 🔧 開発補助サンの解決案 ==="
+          echo -e "\n=== 🔧 解決官サン：SMT裁定と修正パッチ ==="
           echo "$SUN_RES"
