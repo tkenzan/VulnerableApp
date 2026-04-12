@@ -15,7 +15,7 @@ jobs:
           CODE_CONTENT=$(cat server.js 2>/dev/null || echo "No code found")
           PROMPT="数理的監査を行え。1.入力xと変数yの伝播をモデル化。2.if文を方程式f(x,y)=0と定義。3.ガードを抜けSinkに届く解を検証。4.攻撃入力を示せ。解析対象コードは以下：\n$CODE_CONTENT"
           
-          curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}" \
+          curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-:generateContent?key=${GEMINI_API_KEY}" \
           -H 'Content-Type: application/json' \
           -d "{
             \"contents\": [{
