@@ -5,25 +5,18 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Gemini Scan
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # 読み取る対象のファイルを安全に取得
           CODE_CONTENT=$(cat server.js 2>/dev/null || echo "No server.js found")
-          
-          # AIへの命令（プロンプト）を作成
-          PROMPT="あなたはプロのセキュリティリサーチャーです。以下のコードの脆弱性を日本語で診断してください。\n\n${CODE_CONTENT}"
-          
-          # APIを呼び出す
           curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
-          -H "Content-Type: application/json" \
+          -H 'Content-Type: application/json' \
           -d "{
             \"contents\": [{
-              \"parts\": [{
-                \"text\": \"${PROMPT}\"
-              }]
+              \"parts\":[{\"text\": \"あなたはプロのセキュリティリサーチャーです。以下のコードの脆弱性を診断し、日本語で報告してください。 \n\n ${CODE_CONTENT}\"}]
             }]
           }"
