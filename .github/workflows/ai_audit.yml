@@ -49,7 +49,7 @@ jobs:
           2. 制約 C が充足可能(SAT)か判定せよ。
           3. SATの場合、具体的な攻撃入力(PoC)を提示せよ。UNSATの場合は『論理的に安全』と証明せよ。
           4. 冬牙(開発者)への最終的な修正パッチ案を提示せよ。
-          議論内容：\nアイ：$EYE_RES\nカン：$KANN_RES"
+          特に、OSコマンド・インジェクションの可能性を厳格に数理モデル化せよ」議論内容：\nアイ：$EYE_RES\nカン：$KANN_RES"
 
           SUN_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H 'Content-Type: application/json' \
