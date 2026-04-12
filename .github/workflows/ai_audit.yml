@@ -1,9 +1,4 @@
-prompt: |
-            あなたは数理的なセキュリティ監査官です。
-            1. 変数の多項式化：外部入力 x と内部変数 y の伝播ルートを数理モデル化せよ。
-            2. 制約イデアル I の構築：if文や計算式を方程式 f(x, y) = 0 の集合として定義せよ。
-            3. 剰余の計算：入力 x がガードレールを突破して危険な関数に到達する「解」が存在するか検証せよ。
-            4. PoC提示：剰余が0でない場合、具体的な攻撃入力を示せ。
+name: AI Security Audit
 on: [push]
 
 jobs:
@@ -17,11 +12,13 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          CODE_CONTENT=$(cat server.js 2>/dev/null || echo "No server.js found")
-          curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+          CODE_CONTENT=$(cat server.js 2>/dev/null || echo "No code found")
+          PROMPT="数理的監査を行え。1.入力xと変数yの伝播をモデル化。2.if文を方程式f(x,y)=0と定義。3.ガードを抜けSinkに届く解を検証。4.攻撃入力を示せ。解析対象コードは以下：\n$CODE_CONTENT"
+          
+          curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}" \
           -H 'Content-Type: application/json' \
           -d "{
             \"contents\": [{
-              \"parts\":[{\"text\": \"あなたはプロのセキュリティリサーチャーです。以下のコードの脆弱性を診断し、日本語で報告してください。 \n\n ${CODE_CONTENT}\"}]
+              \"parts\":[{\"text\": \"$PROMPT\"}]
             }]
           }"
