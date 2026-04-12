@@ -1,4 +1,4 @@
-name: AI Security Audit (Eye & Kann)
+name: AI Security Audit (Eye, Kann, Sun)
 on: [push]
 
 jobs:
@@ -8,26 +8,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Eye and Kann Scan
+      - name: Team AI Security Briefing
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           CODE=$(cat server.js 2>/dev/null || echo "No code found")
           
           # 1. アイの数理監査
-          EYE_PROMPT="監査官アイ。以下を数理監査せよ。1.入力xと変数yをモデル化。2.if文を方程式化。3.ガードを抜けSinkに届く解を検証。4.攻撃入力を示せ。対象：\n$CODE"
           EYE_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H 'Content-Type: application/json' \
-            -d "{\"contents\": [{\"parts\":[{\"text\": \"$EYE_PROMPT\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"監査官アイ。以下を数理監査し、攻撃成立条件を検証せよ。：\n$CODE\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
           
-          echo "--- 監査官アイの報告 ---"
+          echo -e "\n=== 🛡️ 監査官アイの報告 ==="
           echo "$EYE_RES"
 
-          # 2. カンの反論（検証）
-          KANN_PROMPT="検証官カン。アイの報告に対し、数理的な見落としや非自明な攻撃経路がないか徹底的に反論せよ。報告内容：\n$EYE_RES"
+          # 2. カンの反論
           KANN_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H 'Content-Type: application/json' \
-            -d "{\"contents\": [{\"parts\":[{\"text\": \"$KANN_PROMPT\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"検証官カン。アイの報告に対し、境界値や型、非自明な経路から徹底的に反論せよ。：\n$EYE_RES\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
 
-          echo "--- 検証官カンの反論 ---"
+          echo -e "\n=== ⚔️ 検証官カンの反論 ==="
           echo "$KANN_RES"
+
+          # 3. サンの裁定と解決案
+          SUN_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"開発補助サン。アイとカンの議論を踏まえ、冬牙(開発者)が今すぐ適用すべき具体的なコード修正案を提示せよ。：\nアイ：$EYE_RES\nカン：$KANN_RES\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+
+          echo -e "\n=== 🔧 開発補助サンの解決案 ==="
+          echo "$SUN_RES"
