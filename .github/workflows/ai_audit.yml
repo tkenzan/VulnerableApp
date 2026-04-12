@@ -13,7 +13,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           # 対象コードの抽出（server.js）
-          CODE=$(cat server.js 2>/dev/null || echo "No code found")
+          CODE=$(cat *.js 2>/dev/null || echo "No code found")
           
           # 1. 監査官アイ：数理的・物理的モデル構築
           EYE_PROMPT="監査官アイ。対象コードを数理・物理モデルで監査せよ。
