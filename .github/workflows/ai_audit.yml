@@ -1,4 +1,4 @@
-name: AI Security Audit
+name: AI Security Audit (Eye & Kann)
 on: [push]
 
 jobs:
@@ -8,17 +8,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Gemini Scan
+      - name: Eye and Kann Scan
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          CODE_CONTENT=$(cat server.js 2>/dev/null || echo "No code found")
-          PROMPT="数理的監査を行え。1.入力xと変数yの伝播をモデル化。2.if文を方程式f(x,y)=0と定義。3.ガードを抜けSinkに届く解を検証。4.攻撃入力を示せ。解析対象コードは以下：\n$CODE_CONTENT"
+          CODE=$(cat server.js 2>/dev/null || echo "No code found")
           
-          curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-:generateContent?key=${GEMINI_API_KEY}" \
-          -H 'Content-Type: application/json' \
-          -d "{
-            \"contents\": [{
-              \"parts\":[{\"text\": \"$PROMPT\"}]
-            }]
-          }"
+          # 1. アイの数理監査
+          EYE_PROMPT="監査官アイ。以下を数理監査せよ。1.入力xと変数yをモデル化。2.if文を方程式化。3.ガードを抜けSinkに届く解を検証。4.攻撃入力を示せ。対象：\n$CODE"
+          EYE_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"$EYE_PROMPT\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+          
+          echo "--- 監査官アイの報告 ---"
+          echo "$EYE_RES"
+
+          # 2. カンの反論（検証）
+          KANN_PROMPT="検証官カン。アイの報告に対し、数理的な見落としや非自明な攻撃経路がないか徹底的に反論せよ。報告内容：\n$EYE_RES"
+          KANN_RES=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            -d "{\"contents\": [{\"parts\":[{\"text\": \"$KANN_PROMPT\"}]}]}" | jq -r '.candidates[0].content.parts[0].text')
+
+          echo "--- 検証官カンの反論 ---"
+          echo "$KANN_RES"
